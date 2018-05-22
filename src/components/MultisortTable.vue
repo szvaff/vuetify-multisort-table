@@ -1,6 +1,14 @@
 <script>
 import VDataTable from 'vuetify/src/components/VDataTable'
 import VIcon from 'vuetify/src/components/VIcon'
+import { consoleWarn } from 'vuetify/src/util/console'
+
+// source: https://stackoverflow.com/questions/6913512/how-to-sort-an-array-of-objects-by-multiple-fields
+const fieldSorter = (fields) => (a, b) => fields.map(o => {
+  let dir = 1
+  if (o[0] === '-') { dir = -1; o = o.substring(1) }
+  return a[o] > b[o] ? dir : a[o] < b[o] ? -(dir) : 0
+}).reduce((p, n) => p || n, 0)
 
 export default {
   name: 'multisort-table',
@@ -30,14 +38,12 @@ export default {
   methods: {
     sort (index, shiftKey) {
       var sortBy = this.computedPagination.sortBy
-      sortBy = sortBy === index ? {} : sortBy 
+      sortBy = sortBy === index ? {} : sortBy
 
-      if (!shiftKey) {
-        for (var prop in sortBy) {
-          if (sortBy.hasOwnProperty(prop)) {
-            if (prop !== index) {
-              delete sortBy[prop]
-            }
+      for (var prop in sortBy) {
+        if (sortBy.hasOwnProperty(prop)) {
+          if ((prop !== index && !shiftKey) || sortBy[prop] === null) {
+            delete sortBy[prop]
           }
         }
       }
@@ -47,7 +53,7 @@ export default {
       } else if (sortBy[index] === true) {
         sortBy[index] = false
       } else if (sortBy[index] === false) {
-        sortBy[index] = null
+        delete sortBy[index]
       } else {
         sortBy[index] = true
       }
@@ -91,6 +97,11 @@ export default {
       const beingSorted = pagination.sortBy.hasOwnProperty(header.value) && pagination.sortBy[header.value] !== null
       if (beingSorted) {
         classes.push('active')
+
+        if (Object.keys(pagination.sortBy).length > 1) {
+          children.push(this.$createElement('small', { attrs: { class: 'grey--text text--lighten-1' } }, Object.keys(pagination.sortBy).indexOf(header.value) + 1))
+        }
+
         if (pagination.sortBy[header.value] !== true) {
           classes.push('desc')
           data.attrs['aria-sort'] = 'descending'
@@ -104,6 +115,41 @@ export default {
         data.attrs['aria-label'] += ': Not sorted. Activate to sort ascending.' // TODO: Localization
       }
     }
+  },
+  props: {
+    customSort: {
+      type: Function,
+      default: (items, sortBy, isDescending) => {
+        if (sortBy === null) return items
+
+        var sortInfo = []
+        var keys = Object.keys(sortBy)
+        for (var i = 0; i < keys.length; i++) {
+          var index = keys[i]
+          var s = ''
+          if (sortBy[index] === null) {
+            continue
+          }
+
+          if (sortBy[index] === false) {
+            s += '-'
+          }
+
+          s += index
+          sortInfo.push(s)
+        }
+
+        items = items.sort(fieldSorter(sortInfo))
+
+        return items
+      }
+    }
   }
 }
 </script>
+
+<style scoped lang="scss">
+  small {
+    position: absolute;
+  }
+</style>

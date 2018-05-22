@@ -60,6 +60,24 @@
           },
           {
             value: false,
+            name: 'Frozen Yogurt',
+            calories: 159,
+            fat: 60,
+            carbs: 24,
+            protein: 4.0,
+            iron: '1%'
+          },
+          {
+            value: false,
+            name: 'Frozen Yogurt',
+            calories: 159,
+            fat: 60,
+            carbs: 12,
+            protein: 4.0,
+            iron: '1%'
+          },
+          {
+            value: false,
             name: 'Ice cream sandwich',
             calories: 237,
             fat: 9.0,
